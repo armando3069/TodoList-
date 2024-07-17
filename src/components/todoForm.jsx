@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const TodoForm = ({ addTodo }) => {
+const TodoForm = ({ addTodo,error }) => {
   const [value, setValue] = useState("");
 
   const handlerSubmit = (e) => {
@@ -9,6 +9,9 @@ const TodoForm = ({ addTodo }) => {
         addTodo(value);
         // clear form after submission
         setValue('');
+      }
+      else{
+        error('Empty');
       }
   };
   return (

@@ -1,33 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TodoForm from "./todoForm";
 import Todo from "./todo";
 import EditTodoForm from "./EditTodoForm";
 import toast, { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
-const notify = () => toast.success("Successfully toasted!");
+const successAdd = () =>
+  toast.success("Successfully add Task!", { position: "bottom-center" });
+
+const succesDelete = () =>
+  toast("Delete !", { icon: "🗑" }, { position: "top-center" });
+
+const succesUpdate = () =>
+  toast("Update !", { icon: "✨" }, { position: "top-center" });
+
+const error = (message) => toast.error(message, { position: "top-center" });
 
 const TodoWrapper = () => {
   const [todos, setTodos] = useState([]);
 
+  useEffect(() => {
+    const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+    setTodos(savedTodos);
+  }, []);
+
   const addTodo = (todo) => {
-    setTodos([
+    if (!validateTask(todo)) {
+      error("Invalid input. Please enter valid text.");
+      return;
+    }
+
+    const newAddtodo = [
       ...todos,
       { id: uuidv4(), task: todo, completed: false, isEditing: false },
-    ]);
-    notify();
+    ];
+
+    setTodos(newAddtodo);
+
+    localStorage.setItem("todos", JSON.stringify(newAddtodo));
+    successAdd();
+  };
+
+  const validateTask = (task) => {
+    const regex = /^[a-zA-Z0-9]+(?: [a-zA-Z0-9]+)*$/;
+    return regex.test(task.trim());
   };
 
   const toggleComplete = (id) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+    const newToggleComplete = todos.map((todo) =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
     );
+    setTodos(newToggleComplete);
+    localStorage.setItem("todos", JSON.stringify(newToggleComplete));
   };
 
   const deleteTodo = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+    const newDeleteTodo = todos.filter((todo) => todo.id !== id);
+    setTodos(newDeleteTodo);
+    localStorage.setItem("todos",JSON.stringify(newDeleteTodo));
+    succesDelete();
   };
 
   const editTodo = (id) => {
@@ -39,18 +70,21 @@ const TodoWrapper = () => {
   };
 
   const editTask = (task, id) => {
-    setTodos(
-      todos.map((todo) =>
+  
+      const newEditTask = todos.map((todo) =>
         todo.id === id ? { ...todo, task, isEditing: false } : todo
       )
-    );
+
+      setTodos(newEditTask);
+      localStorage.setItem("todos",JSON.stringify(newEditTask));
+    succesUpdate();
   };
 
   return (
     <div className="TodoWrapper">
       <h1>To do List</h1>
 
-      <TodoForm addTodo={addTodo} />
+      <TodoForm addTodo={addTodo} error={error} />
 
       {todos.map((todo) =>
         todo.isEditing ? (
@@ -66,7 +100,7 @@ const TodoWrapper = () => {
         )
       )}
 
-      <Toaster position="bottom-center" reverseOrder={true} />
+      <Toaster />
     </div>
   );
 };
